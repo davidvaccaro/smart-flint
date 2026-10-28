@@ -1,0 +1,20 @@
+{
+  "name": "@smart-flint/contracts",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Public HTTP contracts for SMART Flint integrations",
+  "license": "SEE LICENSE IN LICENSE",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src/index.ts", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"],
+  "sideEffects": false,
+  "scripts": { "build": "tsc -p tsconfig.build.json", "prepack": "npm run build" }
+}

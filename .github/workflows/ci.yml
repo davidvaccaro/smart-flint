@@ -1,0 +1,91 @@
+name: Verify SMART Flint
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_USER: smart-flint
+          POSTGRES_DB: smart_flint_test
+          POSTGRES_PASSWORD: synthetic-ci-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smart-flint -d smart_flint_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      SMART_FLINT_TEST_DATABASE_URL: postgresql://smart-flint:synthetic-ci-password@localhost:5432/smart_flint_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: PYTHONPATH=sdks/python/src python3 -m unittest discover -s sdks/python/tests
+      - run: python3 -m venv .data/sdk-build-venv
+      - run: .data/sdk-build-venv/bin/pip install -r scripts/sdk-build-requirements.txt
+      - run: npm run test:sdk-artifacts
+      - run: .data/sdk-build-venv/bin/python scripts/build-python-sdk.py --verify
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:workspace
+      - run: npm run test:admin-ui
+      - run: npm run test:admin-oidc
+      - run: npm run test:admin-local
+      - run: npm run test:admin-local-ui
+      - name: Verify local browser workflows
+        run: |
+          npm run dev > /tmp/smart-flint-dev.log 2>&1 &
+          SMART_FLINT_DEV_PID=$!
+          trap 'kill "$SMART_FLINT_DEV_PID"' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3001/health > /dev/null &&
+               curl --fail --silent http://127.0.0.1:3010 > /dev/null &&
+               curl --fail --silent http://127.0.0.1:4010/epic/northstar/r4/metadata > /dev/null &&
+               curl --fail --silent http://127.0.0.1:4100 > /dev/null &&
+               curl --fail --silent http://127.0.0.1:4101/health > /dev/null &&
+               curl --fail --silent http://127.0.0.1:4102/health > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:browser
+          npm run test:samples
+          npm run test:sample-history
+          npm run test:sample-stack
+
+  production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:production
+
+  installer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npm run test:installer

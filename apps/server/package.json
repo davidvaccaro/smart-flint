@@ -1,0 +1,11 @@
+{
+  "name": "@smart-flint/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/apps/server/src/index.js"
+  }
+}

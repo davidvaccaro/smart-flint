@@ -1,0 +1,11 @@
+{
+  "name": "@smart-flint/mock-ehr",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@smart-flint/health-assessment": "*" },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  }
+}

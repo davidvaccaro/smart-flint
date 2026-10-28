@@ -1,0 +1,74 @@
+/** Real TLS and synthetic SMART flow; requires npm run dev:https. No browser TLS bypass. */
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { Agent, fetch as request } from 'undici';
+import { createPKCE, SMARTFlintClient } from '../packages/sdk/src/index.js';
+
+const origin = process.env.SMART_FLINT_HTTPS_URL ?? 'https://127.0.0.1:3443';
+assert.equal(new URL(origin).protocol, 'https:');
+assert.equal(new URL(origin).hostname, '127.0.0.1', 'This check is limited to the loopback development profile.');
+const mock = 'http://127.0.0.1:4010';
+const callbackUri = 'http://127.0.0.1:4100/callback';
+const dispatcher = new Agent({ connect: { ca: await readFile(resolve('.data/https/ca.pem'), 'utf8') } });
+const trustedFetch: typeof globalThis.fetch = async (input, init) => {
+  const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
+  assert.equal(url.origin, origin, 'The TLS test client never sends credentials outside the configured bridge.');
+  return await request(url, { ...init, dispatcher, redirect: 'manual' } as Parameters<typeof request>[1]) as unknown as Response;
+};
+const bridge = new SMARTFlintClient({ baseUrl: origin, fetch: trustedFetch });
+let session: ReturnType<SMARTFlintClient['session']> | undefined;
+try {
+  const health = await trustedFetch(`${origin}/health`);
+  assert.equal(health.status, 200);
+  const ehrLaunch = new URL(`${mock}/epic/northstar/ehr-launch`);
+  ehrLaunch.searchParams.set('patient', 'patient-b');
+  ehrLaunch.searchParams.set('launch_url', `${origin}/launch/inst_health_northstar`);
+  const ehr = await fetch(ehrLaunch, { redirect: 'manual' });
+  assert.equal(ehr.status, 302);
+  const launch = new URL(ehr.headers.get('location')!);
+  assert.equal(launch.origin, origin);
+  const bootstrap = await trustedFetch(launch);
+  assert.equal(bootstrap.status, 302);
+  const appBootstrap = new URL(bootstrap.headers.get('location')!);
+  assert.equal(appBootstrap.origin, new URL(callbackUri).origin);
+  const ticket = appBootstrap.searchParams.get('smart_flint_launch');
+  assert.ok(ticket);
+  const pkce = await createPKCE();
+  const started = await bridge.start({ installationId: 'inst_health_northstar', redirectUri: callbackUri, mode: 'gateway', codeChallenge: pkce.codeChallenge, state: pkce.state, launchTicket: ticket });
+  assert.equal(new URL(started.launchUrl).origin, origin);
+  const authorizing = await trustedFetch(started.launchUrl);
+  assert.equal(authorizing.status, 302);
+  const cookies = authorizing.headers.getSetCookie();
+  assert.ok(cookies.some(cookie => /;\s*Secure(?:;|$)/i.test(cookie)), 'OAuth binding cookies must be Secure on the HTTPS public origin.');
+  const cookie = cookies.map(value => value.split(';')[0]).join('; ');
+  const authorize = new URL(authorizing.headers.get('location')!);
+  assert.equal(authorize.origin, mock);
+  assert.equal(new URL(authorize.searchParams.get('redirect_uri')!).origin, origin);
+  const consent = await fetch(authorize, { redirect: 'manual' });
+  assert.equal(consent.status, 200);
+  const transaction = /name="transaction" value="([^"]+)"/.exec(await consent.text())?.[1];
+  assert.ok(transaction);
+  const decision = await fetch(new URL(authorize.pathname.replace(/authorize$/, 'decision'), mock), { method: 'POST', redirect: 'manual', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ transaction, decision: 'allow', patient: 'patient-b' }) });
+  assert.equal(decision.status, 302);
+  const oauthCallback = new URL(decision.headers.get('location')!);
+  assert.equal(oauthCallback.origin, origin);
+  const activated = await trustedFetch(oauthCallback, { headers: { Cookie: cookie } });
+  assert.equal(activated.status, 302);
+  const destination = new URL(activated.headers.get('location')!);
+  assert.equal(destination.origin, new URL(callbackUri).origin);
+  assert.equal(destination.searchParams.get('error'), null);
+  assert.equal(destination.searchParams.get('state'), pkce.state);
+  const result = await bridge.redeem({ code: destination.searchParams.get('code')!, codeVerifier: pkce.codeVerifier, applicationId: started.applicationId, redirectUri: callbackUri });
+  assert.equal(result.activation.context.patient?.reference, 'Patient/patient-b');
+  assert.equal(new URL(result.activation.gateway.baseUrl).origin, origin);
+  session = bridge.session(result.activation.id, result.sessionToken);
+  const connection = await session.getFHIRConnection({ route: 'gateway' });
+  const patient = await trustedFetch(`${connection.baseUrl}/Patient/patient-b`, { headers: { Authorization: await connection.credentials.getAuthorizationHeader() } });
+  assert.equal(patient.status, 200);
+  assert.deepEqual(await patient.json().then(value => ({ type: value.resourceType, id: value.id })), { type: 'Patient', id: 'patient-b' });
+  console.log('HTTPS SMART smoke passed: trusted certificate validation, EHR bootstrap, both PKCE exchanges, Secure callback cookie, patient context and FHIR gateway.');
+} finally {
+  if (session) await session.close();
+  await dispatcher.close();
+}

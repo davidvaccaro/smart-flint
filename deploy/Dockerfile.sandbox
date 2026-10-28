@@ -1,0 +1,28 @@
+FROM node:24.22.1-bookworm-slim AS build
+WORKDIR /app
+COPY . .
+RUN npm ci && npm run build \
+    && VITE_SMART_FLINT_URL=__SMART_FLINT_RUNTIME_URL__ npm run build -w @smart-flint/sample-patient \
+    && node_modules/.bin/esbuild scripts/sandbox-runtime.ts --bundle --platform=node --format=esm --packages=external \
+       --alias:@smart-flint/health-assessment=./packages/health-assessment/src/index.ts \
+       --alias:@smart-flint/sdk=./packages/sdk/src/index.ts --outfile=dist/sandbox/runtime.mjs \
+    && npm prune --omit=dev
+
+FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime
+ENV NODE_ENV=development DEMO_MODE=true SMART_FLINT_CONTAINER_SANDBOX=true
+WORKDIR /app
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/package.json /app/package-lock.json /app/LICENSE /app/THIRD_PARTY_NOTICES.md ./
+COPY --from=build --chown=node:node /app/dist/sandbox ./dist/sandbox
+COPY --from=build --chown=node:node /app/apps/console/dist ./apps/console/dist
+COPY --from=build --chown=node:node /app/samples/patient-app/dist ./samples/patient-app/dist
+RUN mkdir -p /app/.data && chown node:node /app/.data \
+    && mkdir -p /opt/smart-flint-sandbox && printf 'SMART Flint sandbox image\n' > /opt/smart-flint-sandbox/image-marker \
+    && chmod 444 /opt/smart-flint-sandbox/image-marker \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
+USER node
+VOLUME /app/.data
+EXPOSE 3010 4010 4100 4101 4102
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 CMD node -e "fetch('http://127.0.0.1:'+(process.env.SMART_FLINT_SANDBOX_PORT||3010)+'/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "dist/sandbox/runtime.mjs"]

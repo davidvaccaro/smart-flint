@@ -1,0 +1,61 @@
+name: smart-flint
+
+services:
+  flint:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SMART_FLINT_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      DEMO_MODE: "false"
+      HOST: 0.0.0.0
+      PORT: "3001"
+      BASE_URL: ${BASE_URL:?Set BASE_URL to the externally reachable HTTPS SMART Flint URL}
+      CONSOLE_URL: ${CONSOLE_URL:?Set CONSOLE_URL to the console HTTPS origin, normally BASE_URL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set a base64-encoded 32-byte encryption key}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      ADMIN_AUTH_MODE: ${ADMIN_AUTH_MODE:-oidc}
+      ADMIN_BOOTSTRAP_ENABLED: ${ADMIN_BOOTSTRAP_ENABLED:-false}
+      ADMIN_OIDC_ISSUER: ${ADMIN_OIDC_ISSUER:-}
+      ADMIN_OIDC_CLIENT_ID: ${ADMIN_OIDC_CLIENT_ID:-}
+      ADMIN_OIDC_CLIENT_SECRET: ${ADMIN_OIDC_CLIENT_SECRET:-}
+      ADMIN_OIDC_AUTH_METHOD: ${ADMIN_OIDC_AUTH_METHOD:-none}
+      ADMIN_OIDC_ALLOWED_ORIGINS: ${ADMIN_OIDC_ALLOWED_ORIGINS:-}
+      ADMIN_OIDC_LABEL: ${ADMIN_OIDC_LABEL:-Organization sign-in}
+      DATABASE_URL: postgresql://smart-flint:${POSTGRES_PASSWORD:?Set a URL-safe PostgreSQL password}@postgres:5432/smart-flint
+      ALLOW_PRIVATE_NETWORKS: ${ALLOW_PRIVATE_NETWORKS:-false}
+      RETENTION_HOURS: ${RETENTION_HOURS:-24}
+      OPERATIONS_LOGGING: ${OPERATIONS_LOGGING:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smart-flint
+      POSTGRES_USER: smart-flint
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a URL-safe PostgreSQL password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "smart-flint", "-d", "smart-flint"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres-data:

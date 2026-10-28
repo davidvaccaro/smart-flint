@@ -1,0 +1,22 @@
+{
+  "name": "@smart-flint/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Optional activation and credential SDK for SMART Flint",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": { "node": ">=20.0.0" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src/index.ts", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"],
+  "sideEffects": false,
+  "scripts": { "build": "tsc -p tsconfig.build.json", "prepack": "npm run build" },
+  "dependencies": { "@smart-flint/contracts": "0.1.0" }
+}

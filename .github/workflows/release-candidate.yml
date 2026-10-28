@@ -1,0 +1,110 @@
+name: Prepare release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing package version to prepare; this does not bump or publish a version
+        required: true
+        default: '0.1.0'
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: release-candidate-${{ inputs.version }}
+  cancel-in-progress: false
+jobs:
+  native-apple:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npm run test:native -- --swift
+  candidate:
+    needs: native-apple
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_USER: smart-flint
+          POSTGRES_DB: smart_flint_release_test
+          POSTGRES_PASSWORD: synthetic-release-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smart-flint -d smart_flint_release_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      REQUESTED_FLINT_VERSION: ${{ inputs.version }}
+      SMART_FLINT_TEST_DATABASE_URL: postgresql://smart-flint:synthetic-release-test-password@localhost:5432/smart_flint_release_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - name: Validate the immutable candidate version
+        run: |
+          node --input-type=module <<'JS'
+          import { releaseVersion } from './scripts/prepare-release.mjs';
+          if (process.env.REQUESTED_FLINT_VERSION !== releaseVersion()) throw new Error('Requested version must match the checked-out service and SDK metadata.');
+          JS
+          printf 'SOURCE_DATE_EPOCH=%s\n' "$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+          printf 'FLINT_RELEASE_VERSION=%s\n' "$REQUESTED_FLINT_VERSION" >> "$GITHUB_ENV"
+      - run: npm ci
+      - name: Provision the pinned Python packaging toolchain
+        run: |
+          python3 -m venv "$RUNNER_TEMP/flint-python-build"
+          "$RUNNER_TEMP/flint-python-build/bin/python" -m pip install -r scripts/sdk-build-requirements.txt
+          printf '%s\n' "$RUNNER_TEMP/flint-python-build/bin" >> "$GITHUB_PATH"
+      - run: npm run check
+      - run: npm run security:check
+      - run: npm run test:sdk-artifacts
+      - run: npm run sdk:python
+      - name: Provision the pinned Android compiler and platform
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35'
+          mkdir -p "$RUNNER_TEMP/flint-kotlin"
+          curl --fail --location --proto '=https' --tlsv1.2 --output "$RUNNER_TEMP/flint-kotlin/compiler.zip" https://github.com/JetBrains/kotlin/releases/download/v2.1.10/kotlin-compiler-2.1.10.zip
+          printf 'c6e9e2636889828e19c8811d5ab890862538c89dc2a3101956dfee3c2a8ba6b1  %s\n' "$RUNNER_TEMP/flint-kotlin/compiler.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/flint-kotlin/compiler.zip" -d "$RUNNER_TEMP/flint-kotlin"
+          printf 'KOTLINC=%s\n' "$RUNNER_TEMP/flint-kotlin/kotlinc/bin/kotlinc" >> "$GITHUB_ENV"
+      - run: npm run test:native -- --android
+      - name: Build the production candidate image
+        run: docker build --file deploy/Dockerfile --tag "smart-flint:$FLINT_RELEASE_VERSION-candidate" .
+      - name: Install browser support for production acceptance
+        run: npx playwright install --with-deps chromium
+      - name: Verify clean deployment, recovery and organization sign-in
+        env:
+          SMART_FLINT_TEST_IMAGE: smart-flint:${{ inputs.version }}-candidate
+        run: npm run test:production
+      - name: Verify Docker-only installer and sandbox lifecycle
+        env:
+          SMART_FLINT_INSTALLER_TEST_IMAGE: smart-flint:${{ inputs.version }}-candidate
+        run: npm run test:installer
+      - name: Scan runtime image and produce an image SBOM
+        run: npm run security:image -- --image "smart-flint:$FLINT_RELEASE_VERSION-candidate"
+      - name: Export candidate image and prepare all release artifacts
+        run: |
+          mkdir -p "$RUNNER_TEMP/flint-image"
+          docker save "smart-flint:$FLINT_RELEASE_VERSION-candidate" | gzip -n > "$RUNNER_TEMP/flint-image/image.tar.gz"
+          npm run release:prepare -- --output dist/release --image-archive "$RUNNER_TEMP/flint-image/image.tar.gz" --image-sbom .data/security/container-sbom.cdx.json
+      - name: Verify final artifact hashes
+        working-directory: dist/release
+        run: sha256sum --check SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: smart-flint-${{ inputs.version }}-candidate-${{ github.run_id }}
+          path: dist/release/
+          if-no-files-found: error
+          retention-days: 30

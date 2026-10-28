@@ -1,0 +1,19 @@
+{
+  "name": "@smart-flint/sample-fhir",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless Health Compass SMART Backend Services sample",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "demo": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@smart-flint/health-assessment": "0.1.0",
+    "@smart-flint/sdk": "0.1.0",
+    "fastify": "^5.6.1",
+    "tsx": "^4.20.6",
+    "zod": "^4.1.12"
+  }
+}

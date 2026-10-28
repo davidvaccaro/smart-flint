@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "../..", "outDir": "dist", "declaration": false },
+  "include": ["src/**/*.ts", "../../packages/contracts/src/**/*.ts", "../../packages/storage/src/**/*.ts", "../../scripts/admin-reset-password.ts", "../../scripts/operations.ts"],
+  "exclude": ["../../node_modules", "**/*.test.ts", "**/dist"]
+}

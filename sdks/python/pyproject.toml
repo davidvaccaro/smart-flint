@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smart-flint"
+version = "0.1.0"
+description = "Optional Python activation and credential SDK for a self-hosted SMART Flint service"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+license = "LicenseRef-SMART-Flint-Community-1.0"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Typing :: Typed",
+]
+
+[tool.setuptools.package-data]
+smart_flint = ["py.typed"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

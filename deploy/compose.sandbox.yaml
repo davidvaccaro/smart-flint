@@ -1,0 +1,31 @@
+name: smart-flint-sandbox
+services:
+  sandbox:
+    image: ${SMART_FLINT_SANDBOX_IMAGE:-smart-flint-sandbox:0.1.0-candidate}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.sandbox
+    restart: unless-stopped
+    environment:
+      SMART_FLINT_SANDBOX_PORT: ${SMART_FLINT_SANDBOX_PORT:-3010}
+      SMART_FLINT_MOCK_PORT: ${SMART_FLINT_MOCK_PORT:-4010}
+      SMART_FLINT_PATIENT_PORT: ${SMART_FLINT_PATIENT_PORT:-4100}
+      SMART_FLINT_CDS_PORT: ${SMART_FLINT_CDS_PORT:-4101}
+      SMART_FLINT_FHIR_PORT: ${SMART_FLINT_FHIR_PORT:-4102}
+    ports:
+      - "127.0.0.1:${SMART_FLINT_SANDBOX_PORT:-3010}:${SMART_FLINT_SANDBOX_PORT:-3010}"
+      - "127.0.0.1:${SMART_FLINT_MOCK_PORT:-4010}:${SMART_FLINT_MOCK_PORT:-4010}"
+      - "127.0.0.1:${SMART_FLINT_PATIENT_PORT:-4100}:${SMART_FLINT_PATIENT_PORT:-4100}"
+      - "127.0.0.1:${SMART_FLINT_CDS_PORT:-4101}:${SMART_FLINT_CDS_PORT:-4101}"
+      - "127.0.0.1:${SMART_FLINT_FHIR_PORT:-4102}:${SMART_FLINT_FHIR_PORT:-4102}"
+    volumes:
+      - sandbox-data:/app/.data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  sandbox-data:

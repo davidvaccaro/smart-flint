@@ -1,0 +1,184 @@
+SMART Flint COMMERCIAL LICENSE AGREEMENT
+Proposed agreement template — requires completed order and signatures
+
+This draft is not an executed agreement and grants no rights by itself.
+Complete the Order below and review the terms before execution.
+
+ORDER
+
+Licensor: Xinonix Interactive Development, Inc.
+Licensor address and notice contact: [complete]
+Licensee legal name, address, and notice contact: [complete]
+Effective date: [complete]
+Covered Software and versions: [SMART Flint v1.x, or specify]
+Covered Licensee affiliates: [list legal entities, or none]
+Authorized use: [internal use / identified hosted services / identified products]
+OEM or embedded distribution rights: [none, or identify products and rights]
+License duration: [perpetual for covered versions / subscription start and end]
+OEM end-user duration and survival rights: [not applicable, or specify]
+Any separate evaluation period: [none, or start/end dates and permitted uses]
+License fee and currency: [complete]
+Payment deadline: [complete]
+Maintenance, updates, support, and service levels: [none, or identify schedule]
+Governing law and dispute venue: [complete]
+Any negotiated warranty, indemnity, or liability schedule: [none, or attach]
+
+1. PARTIES AND SOFTWARE
+
+This Agreement is between the Licensor and Licensee identified in the Order.
+"Software" means Licensor-owned SMART Flint code and documentation identified in
+the Order, including those portions within modifications. Third-party
+components remain subject to their separately supplied licenses. Third-party or real
+patient data, external tools, other products, trademarks, and separately
+licensed specifications are excluded unless
+expressly listed in the Order and lawfully licensed by the Licensor.
+
+2. LICENSE GRANT
+
+Subject to payment and compliance, the Licensor grants Licensee a worldwide,
+nonexclusive commercial license to install, run, reproduce, inspect, and
+modify the Software for the authorized uses and duration in the Order.
+The Community License's revenue threshold does not limit this commercial
+grant. Licensee may keep its application code and original modifications
+proprietary. Ownership of Licensor-owned Software is retained by the Licensor;
+Licensee owns its original modifications subject to underlying rights.
+
+The Licensor grants, for the same authorized uses and duration, a nonexclusive
+patent license under claims it has authority to license that are necessarily
+infringed by the Software as supplied. No unrelated combination, independent
+modification, or third-party patent rights are granted. This patent grant ends
+if Licensee files patent litigation alleging infringement by the Software.
+
+3. AFFILIATES AND CONTRACTORS
+
+Only Licensee and affiliates named in the Order are licensed. Contractors may
+use the Software solely to perform work for those licensed entities and may
+not use that permission for other customers. Licensee is responsible for
+their compliance. Adding an affiliate or materially expanding authorized use
+requires a written amendment or a new Order; no undisclosed revenue cap applies.
+
+4. PRODUCTS AND DISTRIBUTION
+
+Hosted services are permitted when identified as an authorized use. Embedded
+or OEM distribution is permitted only if expressly granted in the Order.
+Where permitted, Licensee may distribute the Software solely as part of the
+identified product. An OEM grant authorizes Licensee to sublicense to end users
+only the right to execute the included Software within that product for the
+authorized purposes and duration. Licensee's end-user terms must identify
+Licensee as the grantor, preserve applicable notices, and prohibit separate
+Software redistribution or use beyond that sublicense. The Order may replace
+this mechanism with specified direct Licensor end-user terms.
+Standalone redistribution, relicensing
+the Software itself, or granting downstream development rights requires an
+express written grant in the Order.
+
+Downstream rights covered by a paid OEM grant do not depend on the end user's
+revenue. The Order must identify whether those rights are perpetual or
+subscription-based, and what happens to already delivered copies at expiry.
+For a perpetual product grant, independently compliant end users may continue
+using versions lawfully delivered during the authorized distribution period
+after Licensee's distribution or maintenance term expires, or the Agreement
+terminates for Licensee's breach. This survival does not validate a sublicense
+that was unauthorized when granted, and does not protect an end user's own
+breach. No expansion of downstream rights is implied beyond the Order.
+
+Preserve copyright and required third-party notices. Keep third-party license
+texts available with the distributed Software. Mark material modifications
+and do not imply that they are an official, certified Licensor release.
+
+5. OUTPUTS
+
+Data, images, documents, and other outputs do not become subject to this
+Agreement merely because the Software processed them. No per-output royalty
+or downstream output-user license is implied. Copies of the Software included
+in an output remain subject to the relevant software terms. Rights in input
+data and third-party output material are outside this Agreement.
+
+6. FEES AND LICENSE DURATION
+
+Fees and payment obligations are only those stated in the Order. Taxes legally
+applicable to the transaction are allocated in the Order or under applicable
+law. Growth above the Community License threshold does not create additional
+charges under an already valid commercial grant unless the Order expressly
+provides for them.
+
+A perpetual license continues for covered versions after maintenance ends,
+unless terminated for material breach. A subscription grant ends at its stated
+expiry unless renewed. No automatic renewal or unilateral price increase is
+implied. Updates, upgrades, support, and future major versions are included
+only if expressly identified in the Order or a maintenance schedule.
+
+7. RESPONSIBILITIES AND CONFIDENTIALITY
+
+Licensee is responsible for lawful access to its data, its deployment, testing,
+and compliance with requirements applicable to its intended use. This
+Agreement does not by itself create a data-processing, business-associate,
+clinical validation, or regulatory certification agreement.
+
+Publicly available source code is not confidential merely because a commercial
+license is purchased. Nonpublic commercial terms or information identified
+as confidential may be used for performing this Agreement and shared with
+employees, advisers, and contractors under confidentiality obligations.
+This restriction does not cover independently developed, already public,
+lawfully received, or legally required disclosures.
+
+8. WARRANTIES AND SUPPORT
+
+The Licensor warrants that it has authority to grant the rights in the
+Licensor-owned portions covered by this Agreement. Third-party portions are
+provided under their respective rights and notices. Any further warranty,
+indemnity, support commitment, or service level must be stated in an attached
+schedule; payment alone does not create one.
+
+EXCEPT FOR THE EXPRESS WARRANTY ABOVE AND ANY SIGNED SCHEDULE, AND TO THE
+MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED "AS IS" WITHOUT
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+NON-INFRINGEMENT, ACCURACY, SECURITY, OR UNINTERRUPTED OPERATION.
+
+9. LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, NEITHER PARTY IS LIABLE UNDER THIS
+AGREEMENT FOR INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES,
+OR LOST PROFITS OR DATA. EXCEPT FOR UNPAID FEES, INTENTIONAL MISCONDUCT,
+INFRINGEMENT THROUGH USE OUTSIDE THE LICENSE GRANT, AND LIABILITY THAT
+CANNOT LEGALLY BE LIMITED, EACH PARTY'S AGGREGATE LIABILITY IS LIMITED TO
+THE TOTAL FEES PAID OR PAYABLE UNDER THE ORDER. A SIGNED LIABILITY SCHEDULE
+MAY EXPRESSLY REPLACE THESE TERMS.
+
+10. BREACH AND TERMINATION
+
+Either party may terminate this Agreement for a material breach that remains
+uncured 30 days after written notice specifying the breach. After termination
+or subscription expiry, Licensee must cease uses no longer authorized and
+remove active copies, subject to independent rights and expressly surviving
+downstream rights under Section 4. One inactive archival copy may be kept for
+legal obligations. Ownership, accrued payment obligations, required notices,
+output rights, confidentiality, disclaimers, liability, and dispute provisions
+survive where applicable. Termination does not revoke a third party's
+independent license.
+
+11. GENERAL TERMS
+
+The Order and this Agreement form the entire agreement for the covered grant.
+A signed schedule controls only the terms it expressly replaces. Amendments,
+assignment or transfer of the commercial grant, and an expansion of affiliates
+or OEM rights require both parties' written agreement, except as specifically
+permitted in the Order. Failure to enforce a term is not a waiver. An invalid
+provision does not invalidate the remaining lawful provisions. No trademark
+endorsement or rights outside the grant are implied.
+
+Notice is sent to the contacts in the Order. The governing law and venue are
+those completed in the Order, subject to mandatory applicable law. No choice
+of governing law or venue is inferred from an incomplete template.
+
+SIGNATURES
+
+Xinonix Interactive Development, Inc.
+Authorized signature: ____________________
+Name and title: __________________________
+Date: ___________________________________
+
+Licensee: ________________________________
+Authorized signature: ____________________
+Name and title: __________________________
+Date: ___________________________________
