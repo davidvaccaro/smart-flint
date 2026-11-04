@@ -1,9 +1,9 @@
-FROM node:24.22.1-bookworm-slim AS build
+FROM node:26.13.0-bookworm-slim AS build
 WORKDIR /app
 COPY . .
 RUN npm ci && npm run build && npm prune --omit=dev
 
-FROM node:24.22.1-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime
+FROM node:26.13.0-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS runtime
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=3001 DEMO_MODE=false
 WORKDIR /app
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
